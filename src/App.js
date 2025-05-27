@@ -4,6 +4,7 @@ import BoxVisualizer from "./BoxVisualizer";
 
 
 function App() {
+
   const canvasRef = useRef();
   const [items, setItems] = useState([
     { length: "", width: "", height: "", weight: "", fragile: false, heavy: false },
@@ -50,7 +51,11 @@ function App() {
     if (total <= 28) setSuggestedContainer("20ft Container");
     else if (total <= 58) setSuggestedContainer("40ft Container");
     else setSuggestedContainer("Requires multiple containers or 40HC");
+
+    setTimeout(saveShipment, 500);
   };
+
+  
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -112,6 +117,29 @@ function App() {
         alert("Could not export canvas image.");
       }
     });
+  };
+
+  const saveShipment = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/shipments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items,
+          cbm,
+          weight: totalWeight,
+          container: suggestedContainer,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Shipment saved:", data.message);
+    } catch (error) {
+      console.error("Error saving shipment:", error);
+    }
   };
 
 
